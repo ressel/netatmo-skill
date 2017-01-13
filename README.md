@@ -35,3 +35,4 @@ Alexa, frage Wetterstation: Wie hoch ist die Aussentemperatur?<br />
 
 # Thanks To
 Dr. Mihai GALOS - http://stackoverflow.com/questions/33859826/linking-netatmo-weather-station-to-amazon-echo-alexa
+peerdavid - https://github.com/peerdavid/netatmo-skill
