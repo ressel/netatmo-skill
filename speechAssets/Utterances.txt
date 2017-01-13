@@ -59,6 +59,10 @@ Pressure wie hoch der {Location} Luftdruck ist
 Pressure {Location} Luftdruck
 Pressure Luftdruck {Location}
 
+Wind Wind
+Wind nach dem Wind
+Wind wie stark der Wind ist
+
 AMAZON.StopIntent nein
 AMAZON.StopIntent nein danke
 AMAZON.StopIntent stop
