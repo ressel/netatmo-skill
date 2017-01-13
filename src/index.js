@@ -65,6 +65,7 @@ Netatmo.prototype.intentHandlers = {
         var self = this;
         setLocationNameFromIntentSlots(session, intent.slots);
         var locationName = session.attributes.locationName;
+        setImFromLocationName(session, locationName);
 
         self.getData(session, function(data){
             var responseText = "";
@@ -118,8 +119,13 @@ Netatmo.prototype.intentHandlers = {
     "Wind": function (intent, session, response) {
         var sensorName = convertIntentToSensorName(intent.name);
         session.attributes.sensorName = sensorName;
+        session.attributes.locationName = "Wind";
 
         this.tellSensorInformations(intent, session, response);
+        session.attributes.sensorName = "gustStrength";
+
+        this.tellSensorInformations(intent, session, response);
+        session.attributes.sensorName = sensorName;
     },    
 
     "AMAZON.HelpIntent": function (intent, session, response) {
@@ -128,7 +134,7 @@ Netatmo.prototype.intentHandlers = {
     },
 
     "AMAZON.StopIntent": function (intent, session, response) {
-        response.tell("Servus und bis zum nächsten mal.");
+        response.tell("Ciao und einen schönen Tag.");
     },
 
     "AMAZON.CancelIntent": function (intent, session, response) {
@@ -146,8 +152,9 @@ Netatmo.prototype.tellSensorInformations = function(intent, session, response){
         if(!session.attributes.locationName){
             setLocationNameFromIntentSlots(session, intent.slots);
         }
-
         var locationName = session.attributes.locationName;
+        setImFromLocationName(session, locationName);
+        
         var im = session.attributes.im;
         if(!locationName){
             var responseText = "";
@@ -194,7 +201,7 @@ Netatmo.prototype.askForLocation = function(session, response, responseText){
         var reprompText = session.attributes.sensorName 
                 ? "Von welchem Ort sollte ich den " + convertToGermanSensorName(session.attributes.sensorName) +" Sensor auslesen? \n"
                 : "Von welchem Ort möchtest du Daten wissen?";
-        var speechOutput = responseText + "Sie haben an den folgenden Orten eine Wetterstation. \n " + locations.join(".\n ") + "\n \n" + reprompText;
+        var speechOutput = responseText + "Du hast an den folgenden Orten Sensoren. \n " + locations.join(".\n ") + "\n \n" + reprompText;
         response.ask(speechOutput, reprompText);
 
     }, function(err){
@@ -237,7 +244,7 @@ Netatmo.prototype.readLocationNames = function(data){
     // Search in modules (outside of house)
     for (var i = 0; i < modules.length; i++){
         var module = modules[i];
-        if (module != "Regen" && module != "Wind") {
+        if (module.module_name != "Regen" && module.module_name != "Wind") {
             locations.push(module.module_name);
         }
     }
@@ -343,6 +350,13 @@ Netatmo.prototype.getAccessToken = function(onResponse, onError){
     sendRequest(content, options, createAccessToken, onError);
 }
 
+function setImFromLocationName(session, locationName) {
+    session.attributes.im = "im ";
+    if (locationName == "balkon" || locationName == "dach") {
+        session.attributes.im = "auf dem ";
+    }
+}
+
 
 function setLocationNameFromIntentSlots(session, intentSlots){
     if(!intentSlots || !intentSlots.Location || !intentSlots.Location.value){
@@ -350,7 +364,6 @@ function setLocationNameFromIntentSlots(session, intentSlots){
     }
 
     session.attributes.locationName = intentSlots.Location.value;
-    session.attributes.im = session.attributes.locationName.toLowerCase() == "aussen" ? "" : "im "; ;
 }
 
 
@@ -391,6 +404,8 @@ function sendRequest(content, options, onResponse, onError){
 function convertIntentToSensorName(intentName){
     if(intentName === "COZWEI"){
         return "CO2";
+    } else if (intentName === "Wind") {
+        return "WindStrength";
     }
 
     return intentName;
@@ -413,9 +428,11 @@ function getResponseTextForSensor(module, sensorName, im, locationName){
     
     } else if( sensorName === "Pressure"){
         return "Der Luftdruck " + im + locationName + " beträgt " + val + " milli bar. \n";
-    } else if( sensorName === "Wind"){
-        return im + locationName + " herrscht Windstärke " + val + ".\n";
-    }
+    } else if( sensorName === "WindStrength"){
+        var val2 = convertToGermanNumber(module["GustStrength"]);
+        return "Auf dem Balkon herrscht Windstärke " + val + " mit Böen der Stärke " + val2 + ".\n";
+        
+    } 
 
 
     // Unknown sensor, use default
@@ -439,8 +456,10 @@ function convertToGermanSensorName(sensorName){
     } else if( sensorName === "Pressure"){
         return "Luftdruck";
         
-    } else if( sensorName === "Wind"){
+    } else if( sensorName === "WindStrength"){
         return "Wind";
+    } else if( sensorName === "GustStrength"){
+        return "Böe";
     }
 
     // Unknown sensor, use default
