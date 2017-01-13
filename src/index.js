@@ -3,6 +3,8 @@
  * 
  * Author: Peer David
  * Date: 23.12.2016
+ * Modifier: Matthias Ressel
+ * DAte: 13.01.2017
  */
 
 /**
@@ -112,6 +114,13 @@ Netatmo.prototype.intentHandlers = {
 
         this.tellSensorInformations(intent, session, response);
     },
+    
+    "Wind": function (intent, session, response) {
+        var sensorName = convertIntentToSensorName(intent.name);
+        session.attributes.sensorName = sensorName;
+
+        this.tellSensorInformations(intent, session, response);
+    },    
 
     "AMAZON.HelpIntent": function (intent, session, response) {
         responseText = "Mit Wetterstation kannst du deine privaten Wetter daten abfragen. "
@@ -228,7 +237,9 @@ Netatmo.prototype.readLocationNames = function(data){
     // Search in modules (outside of house)
     for (var i = 0; i < modules.length; i++){
         var module = modules[i];
-        locations.push(module.module_name);
+        if (module != "Regen" && module != "Wind") {
+            locations.push(module.module_name);
+        }
     }
 
     // Search in devices (inside of house)
@@ -402,6 +413,8 @@ function getResponseTextForSensor(module, sensorName, im, locationName){
     
     } else if( sensorName === "Pressure"){
         return "Der Luftdruck " + im + locationName + " beträgt " + val + " milli bar. \n";
+    } else if( sensorName === "Wind"){
+        return im + locationName + " herrscht Windstärke " + val + ".\n";
     }
 
 
@@ -425,6 +438,9 @@ function convertToGermanSensorName(sensorName){
     
     } else if( sensorName === "Pressure"){
         return "Luftdruck";
+        
+    } else if( sensorName === "Wind"){
+        return "Wind";
     }
 
     // Unknown sensor, use default
