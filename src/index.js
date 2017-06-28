@@ -439,6 +439,30 @@ function getResponseTextForSensor(module, sensorName, im, locationName){
     return "Der " + sensorName + " wert liegt bei " + val + ". \n";
 }
 
+function kphToBeaufort(kph) {
+    if (kph < 1) {
+        return 0;
+    } else if (kph < 6) {
+        return 1;
+    } else if (kph < 12) {
+        return 2; 
+    } else if (kph < 20) {
+        return 3;
+    } else if (kph < 29) {
+        return 4;
+    } else if (kph < 39) {
+        return 5;
+    } else if (kph < 50) {
+        return 6;
+    } else if (kph < 62) {
+        return 7;
+    } else if (kph < 75) {
+        return 8;
+    } else {
+        return 9;
+    }
+}
+
 
 function convertToGermanSensorName(sensorName){
     if(sensorName === "Temperature")  {
